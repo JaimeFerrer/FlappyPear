@@ -97,6 +97,14 @@
     rotation: 0,
   };
 
+  // "La Pera" — Pablo, the birthday boy, as a pear-plane (from the party flyer).
+  const pearImg = new Image();
+  let pearImgLoaded = false;
+  pearImg.onload = () => {
+    pearImgLoaded = true;
+  };
+  pearImg.src = "assets/pera-pablo.png";
+
   let pipes = []; // {x, gapY, passed}
   let timeSincePipe = 0;
   let groundOffset = 0;
@@ -250,14 +258,23 @@
     ctx.strokeRect(pipe.x - 5, bottomY, PIPE_W + 10, capH);
   }
 
-  // Placeholder "La Pera" character — pear body + simple cartoon face.
-  // TODO: replace with the real photo/artwork of Pablo's face from the party
-  // flyer once the cropped PNG asset is provided (see assets/README.md).
   function drawPear() {
     ctx.save();
     ctx.translate(pear.x, pear.y);
     ctx.rotate(pear.rotation);
+    if (pearImgLoaded) {
+      const targetH = PEAR_R * 3.1;
+      const targetW = targetH * (pearImg.naturalWidth / pearImg.naturalHeight);
+      ctx.drawImage(pearImg, -targetW / 2, -targetH / 2, targetW, targetH);
+    } else {
+      drawPearPlaceholder();
+    }
+    ctx.restore();
+  }
 
+  // Fallback placeholder, used only if the real sprite fails to load.
+  // Assumes the caller has already translated/rotated into pear space.
+  function drawPearPlaceholder() {
     const r = PEAR_R;
 
     // leaf
@@ -310,8 +327,6 @@
     ctx.beginPath();
     ctx.arc(0, r * 0.35, r * 0.35, 0.15 * Math.PI, 0.85 * Math.PI);
     ctx.stroke();
-
-    ctx.restore();
   }
 
   // ---------- Text helpers ----------
