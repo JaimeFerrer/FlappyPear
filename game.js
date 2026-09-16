@@ -350,15 +350,6 @@
     ctx.fillStyle = "#fff";
     ctx.fillText(title2, W / 2, H * 0.22 + 58);
     ctx.restore();
-
-    ctx.save();
-    ctx.font = "600 16px 'Anton', sans-serif";
-    ctx.fillStyle = LIME;
-    ctx.fillText("CUMPLE DE PABLO «LA PERA»", W / 2, H * 0.22 + 90);
-    ctx.font = "400 13px sans-serif";
-    ctx.fillStyle = "#cfcfcf";
-    ctx.fillText("Sábado 3 de Octubre · Queens Lounge Bar", W / 2, H * 0.22 + 112);
-    ctx.restore();
   }
 
   function drawReadyOverlay() {
