@@ -129,7 +129,7 @@
   }
 
   function flap() {
-    if (state === STATE.READY) {
+    if (state === STATE.READY || state === STATE.DEAD) {
       state = STATE.PLAYING;
       resetGame();
       pear.vy = FLAP_VELOCITY;
@@ -137,8 +137,6 @@
     } else if (state === STATE.PLAYING) {
       pear.vy = FLAP_VELOCITY;
       sfx.flap();
-    } else if (state === STATE.DEAD) {
-      state = STATE.READY;
     }
   }
 
