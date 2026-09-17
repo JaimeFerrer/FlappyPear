@@ -471,54 +471,69 @@
     if (state !== STATE.READY) drawColiseumSign(DJ_CX, 222);
   }
 
+  // DJ icon pose: leaning over the decks, one arm working the turntable,
+  // the other thrown up in the air — flat shapes in the game's own colors.
   function drawDjSilhouette(x, boothTopY) {
-    const HW = 24;
-    const bob = Math.sin(elapsed * 3) * 3;
+    const HW = 27;
+    const bob = Math.sin(elapsed * 3) * 2;
+    const bodyColor = "#241934";
+    const outline = "rgba(214,255,47,0.55)";
     ctx.save();
     ctx.translate(x, boothTopY + bob);
-    ctx.fillStyle = "#221735";
-    ctx.strokeStyle = "rgba(214,255,47,0.6)";
-    ctx.lineWidth = 1.5;
+    ctx.rotate(-0.1);
 
-    // head
+    // arm down on the decks
+    ctx.strokeStyle = bodyColor;
+    ctx.lineWidth = HW * 0.5;
+    ctx.lineCap = "round";
     ctx.beginPath();
-    ctx.arc(0, -HW * 2.2, HW * 0.9, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
-
-    // headphones
-    ctx.strokeStyle = LIME;
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.arc(0, -HW * 2.2, HW * 1.05, Math.PI * 1.15, Math.PI * 1.85);
+    ctx.moveTo(-HW * 0.75, -HW * 0.95);
+    ctx.lineTo(-HW * 0.55, HW * 0.3);
     ctx.stroke();
     ctx.fillStyle = LIME;
     ctx.beginPath();
-    ctx.arc(-HW * 0.95, -HW * 2.0, 3.5, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.arc(HW * 0.95, -HW * 2.0, 3.5, 0, Math.PI * 2);
+    ctx.arc(-HW * 0.5, HW * 0.38, HW * 0.22, 0, Math.PI * 2);
     ctx.fill();
 
-    // shoulders (rest hidden behind the booth)
-    ctx.fillStyle = "#221735";
+    // arm thrown up, pumping a little
+    const pump = Math.sin(elapsed * 4) * 0.08;
+    ctx.strokeStyle = bodyColor;
+    ctx.lineWidth = HW * 0.5;
     ctx.beginPath();
-    ctx.moveTo(-HW, -HW * 1.3);
-    ctx.lineTo(HW, -HW * 1.3);
-    ctx.lineTo(HW * 0.8, 0);
-    ctx.lineTo(-HW * 0.8, 0);
-    ctx.closePath();
+    ctx.moveTo(HW * 0.7, -HW * 1.05);
+    ctx.lineTo(HW * 1.75 + pump * 18, -HW * 2.65 - pump * 12);
+    ctx.stroke();
+
+    // torso, leaning forward over the booth
+    ctx.fillStyle = bodyColor;
+    ctx.strokeStyle = outline;
+    ctx.lineWidth = 1.5;
+    roundRectPath(-HW * 0.95, -HW * 1.35, HW * 1.9, HW * 1.5, HW * 0.55);
     ctx.fill();
     ctx.stroke();
 
-    // one arm thrown up
-    ctx.strokeStyle = "#221735";
-    ctx.lineWidth = HW * 0.4;
+    // head
+    const headCy = -HW * 2.35;
+    ctx.fillStyle = bodyColor;
+    ctx.beginPath();
+    ctx.arc(0, headCy, HW * 0.95, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    // headphones: a band over the head plus rounded ear cups
+    ctx.strokeStyle = LIME;
+    ctx.lineWidth = HW * 0.28;
     ctx.lineCap = "round";
     ctx.beginPath();
-    ctx.moveTo(HW * 0.8, -HW * 1.1);
-    ctx.lineTo(HW * 1.5 + Math.sin(elapsed * 3) * 4, -HW * 2.6);
+    ctx.arc(0, headCy + HW * 0.05, HW * 1.1, Math.PI * 1.08, Math.PI * 1.92);
     ctx.stroke();
+    ctx.fillStyle = LIME;
+    ctx.beginPath();
+    ctx.arc(-HW * 1.02, headCy + HW * 0.18, HW * 0.26, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(HW * 1.02, headCy + HW * 0.18, HW * 0.26, 0, Math.PI * 2);
+    ctx.fill();
 
     ctx.restore();
   }
