@@ -338,11 +338,11 @@
   const CROWD_COLOR_BACK = "#2a2038";
   const CROWD_COLOR_FRONT = "#160f21";
   const crowdFigures = [];
-  for (let i = 0; i < 16; i++) {
+  for (let i = 0; i < 30; i++) {
     crowdFigures.push({
       x: Math.random() * W,
-      yf: 0.05 + Math.random() * 0.4,
-      scale: 0.5 + Math.random() * 0.22,
+      yf: 0.02 + Math.random() * 0.42,
+      scale: 0.48 + Math.random() * 0.22,
       color: CROWD_COLOR_BACK,
       armsUp: Math.random() < 0.4,
       phase: Math.random() * 10,
@@ -350,11 +350,11 @@
       swayAmt: 0.07 + Math.random() * 0.07,
     });
   }
-  for (let i = 0; i < 11; i++) {
+  for (let i = 0; i < 22; i++) {
     crowdFigures.push({
       x: Math.random() * W,
-      yf: 0.42 + Math.random() * 0.52,
-      scale: 0.75 + Math.random() * 0.28,
+      yf: 0.4 + Math.random() * 0.55,
+      scale: 0.72 + Math.random() * 0.3,
       color: CROWD_COLOR_FRONT,
       armsUp: Math.random() < 0.4,
       phase: Math.random() * 10,
@@ -417,6 +417,133 @@
       const sway = Math.sin(elapsed * f.speed + f.phase) * f.swayAmt;
       drawSilhouette(f.x, y, f.scale, f.color, f.armsUp, sway);
     }
+  }
+
+  // A little DJ booth at the back of the floor, with a big rave-style
+  // "TEKNO" sign hanging above it.
+  const DJ_CX = W * 0.66;
+  const STAGE_TOP = FLOOR_TOP - 8;
+  const BOOTH_W = 128;
+  const BOOTH_H = 58;
+  const BOOTH_Y = STAGE_TOP - BOOTH_H + 6;
+
+  function drawDjBooth() {
+    ctx.fillStyle = "#0f0a18";
+    ctx.strokeStyle = LIME;
+    ctx.lineWidth = 3;
+
+    // stage platform
+    roundRectPath(DJ_CX - 118, STAGE_TOP, 236, 20, 6);
+    ctx.fill();
+    ctx.stroke();
+
+    // booth
+    roundRectPath(DJ_CX - BOOTH_W / 2, BOOTH_Y, BOOTH_W, BOOTH_H, 7);
+    ctx.fill();
+    ctx.stroke();
+
+    // mixer top edge + knobs
+    ctx.strokeStyle = "rgba(214,255,47,0.55)";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(DJ_CX - BOOTH_W / 2 + 8, BOOTH_Y + BOOTH_H * 0.28);
+    ctx.lineTo(DJ_CX + BOOTH_W / 2 - 8, BOOTH_Y + BOOTH_H * 0.28);
+    ctx.stroke();
+    const pulse = Math.abs(Math.sin(elapsed * 6));
+    ctx.fillStyle = `rgba(214,255,47,${(0.55 + pulse * 0.35).toFixed(2)})`;
+    for (let i = -1; i <= 1; i++) {
+      ctx.beginPath();
+      ctx.arc(DJ_CX + i * 26, BOOTH_Y + BOOTH_H * 0.64, 6, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    drawDjSilhouette(DJ_CX, BOOTH_Y);
+    drawTeknoSign(DJ_CX, BOOTH_Y - 78);
+  }
+
+  function drawDjSilhouette(x, boothTopY) {
+    const HW = 24;
+    const bob = Math.sin(elapsed * 3) * 3;
+    ctx.save();
+    ctx.translate(x, boothTopY + bob);
+    ctx.fillStyle = "#221735";
+    ctx.strokeStyle = "rgba(214,255,47,0.6)";
+    ctx.lineWidth = 1.5;
+
+    // head
+    ctx.beginPath();
+    ctx.arc(0, -HW * 2.2, HW * 0.9, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    // headphones
+    ctx.strokeStyle = LIME;
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(0, -HW * 2.2, HW * 1.05, Math.PI * 1.15, Math.PI * 1.85);
+    ctx.stroke();
+    ctx.fillStyle = LIME;
+    ctx.beginPath();
+    ctx.arc(-HW * 0.95, -HW * 2.0, 3.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(HW * 0.95, -HW * 2.0, 3.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    // shoulders (rest hidden behind the booth)
+    ctx.fillStyle = "#221735";
+    ctx.beginPath();
+    ctx.moveTo(-HW, -HW * 1.3);
+    ctx.lineTo(HW, -HW * 1.3);
+    ctx.lineTo(HW * 0.8, 0);
+    ctx.lineTo(-HW * 0.8, 0);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // one arm thrown up
+    ctx.strokeStyle = "#221735";
+    ctx.lineWidth = HW * 0.4;
+    ctx.lineCap = "round";
+    ctx.beginPath();
+    ctx.moveTo(HW * 0.8, -HW * 1.1);
+    ctx.lineTo(HW * 1.5 + Math.sin(elapsed * 3) * 4, -HW * 2.6);
+    ctx.stroke();
+
+    ctx.restore();
+  }
+
+  function drawTeknoSign(cx, cy) {
+    const text = "TEKNO";
+    const colors = [LIME, "#ff5fa2", "#4fd8ff", "#ffd23f", "#a463ff"];
+    ctx.save();
+    ctx.font = "700 46px 'Bangers', 'Anton', sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+
+    const letters = text.split("");
+    const widths = letters.map((l) => ctx.measureText(l).width);
+    const spacing = 4;
+    const totalW = widths.reduce((a, b) => a + b, 0) + spacing * (letters.length - 1);
+    let x = cx - totalW / 2;
+
+    letters.forEach((l, i) => {
+      const w = widths[i];
+      const jitter = Math.sin(elapsed * 3 + i * 1.3) * 3;
+      const rot = Math.sin(elapsed * 2.4 + i) * 0.05 + (i % 2 === 0 ? -0.03 : 0.03);
+      ctx.save();
+      ctx.translate(x + w / 2, cy + jitter);
+      ctx.rotate(rot);
+      ctx.lineWidth = 5;
+      ctx.strokeStyle = "#000";
+      ctx.strokeText(l, 0, 0);
+      ctx.fillStyle = colors[i % colors.length];
+      ctx.fillText(l, 0, 0);
+      ctx.restore();
+      x += w + spacing;
+    });
+
+    ctx.restore();
   }
 
   let pipes = []; // {x, gapY, passed}
@@ -492,6 +619,7 @@
     }
 
     drawDanceFloor();
+    drawDjBooth();
     drawCrowd();
 
     // disco ball centered on the ceiling, beaming light down over the floor
