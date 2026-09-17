@@ -131,7 +131,12 @@
     return friend;
   });
 
-  const DANCER_COLORS = ["#ff5fa2", "#4fd8ff", "#ffd23f", "#a463ff", "#ff7a45", "#4fff9f"];
+  const SHIRT_COLORS = ["#ff5fa2", "#4fd8ff", "#ffd23f", "#a463ff", "#ff7a45", "#4fff9f"];
+  const PANTS_COLORS = ["#2b3a67", "#3d2b45", "#394d3a", "#4a2f2f", "#2f3e4a", "#43354a"];
+  const SKIN_COLOR = "#e8b48c";
+  const SKIN_SHADOW = "#c98f65";
+  const SHOE_COLOR = "#1c1c1c";
+  const OUTLINE = "#161616";
   const DANCER_FADE = 0.35;
   // A "dance floor" row near the bottom, clear of the title/score text and
   // the player's fixed x position.
@@ -149,7 +154,8 @@
     phase: Math.random() * 10,
     speed: 2.2 + Math.random() * 1.4,
     scale: 0.8 + Math.random() * 0.25,
-    color: DANCER_COLORS[0],
+    shirtColor: SHIRT_COLORS[0],
+    pantsColor: PANTS_COLORS[0],
   }));
 
   function pickFriend(excludeNames) {
@@ -169,7 +175,8 @@
         slot.phase = Math.random() * 10;
         slot.speed = 2.2 + Math.random() * 1.4;
         slot.scale = 0.85 + Math.random() * 0.3;
-        slot.color = DANCER_COLORS[Math.floor(Math.random() * DANCER_COLORS.length)];
+        slot.shirtColor = SHIRT_COLORS[Math.floor(Math.random() * SHIRT_COLORS.length)];
+        slot.pantsColor = PANTS_COLORS[Math.floor(Math.random() * PANTS_COLORS.length)];
         slot.state = "in";
         slot.timer = DANCER_FADE;
       } else if (slot.state === "in") {
@@ -186,7 +193,7 @@
     }
   }
 
-  function roundRect(x, y, w, h, r) {
+  function roundRectPath(x, y, w, h, r) {
     ctx.beginPath();
     ctx.moveTo(x + r, y);
     ctx.arcTo(x + w, y, x + w, y + h, r);
@@ -196,20 +203,41 @@
     ctx.closePath();
   }
 
-  function drawLimbArm(shoulderX, shoulderY, sideSign, angle, len, color, width) {
-    const handX = shoulderX + sideSign * len * Math.sin(angle);
-    const handY = shoulderY + len * Math.cos(angle);
+  // Filled + outlined rounded rect (shirt, pants) — comic-style silhouette.
+  function drawBlock(x, y, w, h, r, fillColor) {
+    roundRectPath(x, y, w, h, r);
+    ctx.fillStyle = fillColor;
+    ctx.fill();
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = OUTLINE;
+    ctx.stroke();
+  }
+
+  // Outlined capsule limb: thick dark stroke underneath, colored stroke on top.
+  function drawLimb(x1, y1, x2, y2, width, color) {
+    ctx.lineCap = "round";
+    ctx.strokeStyle = OUTLINE;
+    ctx.lineWidth = width + 4;
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
     ctx.strokeStyle = color;
     ctx.lineWidth = width;
-    ctx.lineCap = "round";
     ctx.beginPath();
-    ctx.moveTo(shoulderX, shoulderY);
-    ctx.lineTo(handX, handY);
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
     ctx.stroke();
-    ctx.fillStyle = color;
+  }
+
+  function drawBlob(cx, cy, r, fillColor) {
     ctx.beginPath();
-    ctx.arc(handX, handY, width * 0.6, 0, Math.PI * 2);
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.fillStyle = fillColor;
     ctx.fill();
+    ctx.lineWidth = 2.5;
+    ctx.strokeStyle = OUTLINE;
+    ctx.stroke();
   }
 
   function drawDancer(slot) {
@@ -222,62 +250,77 @@
 
     const HW = 40 * slot.scale;
     const headH = HW / slot.friend.aspect;
-    const bodyW = HW * 1.05;
-    const bodyH = HW * 1.55;
-    const legLen = HW * 1.45;
-    const armLen = HW * 1.1;
+    const bodyW = HW * 1.1;
+    const bodyH = HW * 1.35;
+    const legLen = HW * 1.35;
+    const armLen = HW * 1.05;
+    const armW = HW * 0.34;
+    const legW = HW * 0.4;
     const t = elapsed * slot.speed + slot.phase;
     const isDance = slot.mode === "dance";
 
+    // Big, energetic dance bounce vs. a gentler wave sway.
+    const bounce = isDance ? Math.abs(Math.sin(t * 2)) * HW * 0.32 : Math.sin(t * 1.6) * HW * 0.06;
+    const hipSway = isDance ? Math.sin(t * 2) * HW * 0.22 : Math.sin(t * 1.6) * HW * 0.08;
+    const bodyTilt = isDance ? Math.sin(t * 2 + 0.4) * 0.16 : Math.sin(t * 1.6) * 0.06;
+
     ctx.save();
     ctx.globalAlpha = alpha;
-    ctx.translate(slot.xf * W, slot.yf * H);
-    ctx.rotate(Math.sin(t * (isDance ? 2 : 0.8)) * (isDance ? 0.1 : 0.05));
+    ctx.translate(slot.xf * W + hipSway, slot.yf * H - bounce);
+    ctx.rotate(bodyTilt);
 
-    // legs
+    // legs (pants), from hip to shoe
     const hipY = bodyH;
     let leftFootX, rightFootX, leftFootY, rightFootY;
     if (isDance) {
-      leftFootX = -HW * 0.32 + Math.sin(t * 2) * HW * 0.15;
-      rightFootX = HW * 0.32 + Math.sin(t * 2 + Math.PI) * HW * 0.15;
-      leftFootY = hipY + legLen - Math.max(0, Math.sin(t * 2 + Math.PI)) * HW * 0.18;
-      rightFootY = hipY + legLen - Math.max(0, Math.sin(t * 2)) * HW * 0.18;
+      leftFootX = -HW * 0.4 + Math.sin(t * 2) * HW * 0.32;
+      rightFootX = HW * 0.4 + Math.sin(t * 2 + Math.PI) * HW * 0.32;
+      leftFootY = hipY + legLen - Math.max(0, Math.sin(t * 2 + Math.PI)) * HW * 0.32;
+      rightFootY = hipY + legLen - Math.max(0, Math.sin(t * 2)) * HW * 0.32;
     } else {
-      leftFootX = -HW * 0.26;
-      rightFootX = HW * 0.26;
+      leftFootX = -HW * 0.28 + Math.sin(t * 1.6) * HW * 0.06;
+      rightFootX = HW * 0.28 - Math.sin(t * 1.6) * HW * 0.06;
       leftFootY = hipY + legLen;
       rightFootY = hipY + legLen;
     }
-    ctx.strokeStyle = slot.color;
-    ctx.lineWidth = HW * 0.2;
-    ctx.lineCap = "round";
-    ctx.beginPath();
-    ctx.moveTo(0, hipY);
-    ctx.lineTo(leftFootX, leftFootY);
-    ctx.moveTo(0, hipY);
-    ctx.lineTo(rightFootX, rightFootY);
-    ctx.stroke();
+    drawLimb(-HW * 0.16, hipY, leftFootX, leftFootY, legW, slot.pantsColor);
+    drawLimb(HW * 0.16, hipY, rightFootX, rightFootY, legW, slot.pantsColor);
+    drawBlob(leftFootX, leftFootY, legW * 0.55, SHOE_COLOR);
+    drawBlob(rightFootX, rightFootY, legW * 0.55, SHOE_COLOR);
 
-    // torso
-    ctx.fillStyle = slot.color;
-    roundRect(-bodyW / 2, 0, bodyW, bodyH, bodyW * 0.35);
-    ctx.fill();
+    // shirt (torso)
+    drawBlock(-bodyW / 2, 0, bodyW, bodyH, bodyW * 0.32, slot.shirtColor);
 
-    // arms
+    // arms (skin), from shoulder to hand
     let leftArmAngle, rightArmAngle;
     if (isDance) {
-      leftArmAngle = Math.PI * 0.55 + Math.sin(t * 2) * 0.9;
-      rightArmAngle = Math.PI * 0.55 + Math.sin(t * 2 + Math.PI) * 0.9;
+      leftArmAngle = Math.PI * 0.5 + Math.sin(t * 2) * 1.3;
+      rightArmAngle = Math.PI * 0.5 + Math.sin(t * 2 + Math.PI) * 1.3;
     } else {
-      leftArmAngle = 0.15 + Math.sin(t * 0.8) * 0.1;
-      rightArmAngle = Math.PI * 0.85 + Math.sin(t * 5) * 0.35;
+      leftArmAngle = 0.2 + Math.sin(t * 1.6) * 0.15;
+      rightArmAngle = Math.PI * 0.82 + Math.sin(t * 5) * 0.4;
     }
-    drawLimbArm(-bodyW / 2, HW * 0.15, -1, leftArmAngle, armLen, slot.color, HW * 0.17);
-    drawLimbArm(bodyW / 2, HW * 0.15, 1, rightArmAngle, armLen, slot.color, HW * 0.17);
+    const leftShoulder = { x: -bodyW / 2 + HW * 0.05, y: HW * 0.15 };
+    const rightShoulder = { x: bodyW / 2 - HW * 0.05, y: HW * 0.15 };
+    const leftHand = {
+      x: leftShoulder.x - armLen * Math.sin(leftArmAngle),
+      y: leftShoulder.y + armLen * Math.cos(leftArmAngle),
+    };
+    const rightHand = {
+      x: rightShoulder.x + armLen * Math.sin(rightArmAngle),
+      y: rightShoulder.y + armLen * Math.cos(rightArmAngle),
+    };
+    drawLimb(leftShoulder.x, leftShoulder.y, leftHand.x, leftHand.y, armW, SKIN_COLOR);
+    drawLimb(rightShoulder.x, rightShoulder.y, rightHand.x, rightHand.y, armW, SKIN_COLOR);
+    drawBlob(leftHand.x, leftHand.y, armW * 0.62, SKIN_SHADOW);
+    drawBlob(rightHand.x, rightHand.y, armW * 0.62, SKIN_SHADOW);
+
+    // neck, so the head doesn't float above the shirt collar
+    drawBlock(-HW * 0.16, -HW * 0.1, HW * 0.32, HW * 0.25, HW * 0.08, SKIN_COLOR);
 
     // head
-    const headBob = isDance ? Math.sin(t * 2) * HW * 0.1 : Math.sin(t * 0.8) * HW * 0.04;
-    ctx.drawImage(slot.friend.img, -HW / 2, -headH + headBob + 2, HW, headH);
+    const headBob = isDance ? Math.sin(t * 2) * HW * 0.06 : Math.sin(t * 1.6) * HW * 0.03;
+    ctx.drawImage(slot.friend.img, -HW / 2, -headH + headBob, HW, headH);
 
     ctx.restore();
   }
