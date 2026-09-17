@@ -962,6 +962,24 @@
     ctx.stroke();
   }
 
+  // A dense crowd skyline along the ground line instead of plain dashes —
+  // heads, shoulders and the odd raised arm, tiled to scroll seamlessly.
+  const GROUND_CROWD_TILE_W = 58;
+  const groundCrowdBumps = [];
+  (function initGroundCrowd() {
+    let x = 4;
+    while (x < GROUND_CROWD_TILE_W) {
+      groundCrowdBumps.push({
+        dx: x,
+        headR: 4 + Math.random() * 3.5,
+        armUp: Math.random() < 0.4,
+        armLen: 7 + Math.random() * 6,
+        armSide: Math.random() < 0.5 ? -1 : 1,
+      });
+      x += 7 + Math.random() * 6;
+    }
+  })();
+
   function drawGround(dt) {
     groundOffset -= PIPE_SPEED * dt;
     if (groundOffset < -40) groundOffset += 40;
@@ -976,9 +994,28 @@
     ctx.lineTo(W, GROUND_Y);
     ctx.stroke();
 
+    drawGroundCrowd();
+  }
+
+  function drawGroundCrowd() {
     ctx.fillStyle = LIME_DARK;
-    for (let x = groundOffset; x < W; x += 40) {
-      ctx.fillRect(x, GROUND_Y + 6, 20, 6);
+    for (let baseX = groundOffset - GROUND_CROWD_TILE_W; baseX < W; baseX += GROUND_CROWD_TILE_W) {
+      for (const b of groundCrowdBumps) {
+        const cx = baseX + b.dx;
+        const headCy = GROUND_Y - b.headR + 2;
+        ctx.beginPath();
+        ctx.arc(cx, headCy, b.headR, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillRect(cx - b.headR * 0.85, headCy, b.headR * 1.7, GROUND_Y - headCy + 10);
+        if (b.armUp) {
+          ctx.lineWidth = b.headR * 0.45;
+          ctx.lineCap = "round";
+          ctx.beginPath();
+          ctx.moveTo(cx + b.armSide * b.headR * 0.6, headCy + b.headR * 0.6);
+          ctx.lineTo(cx + b.armSide * (b.headR * 0.6 + b.armLen * 0.55), headCy - b.armLen);
+          ctx.stroke();
+        }
+      }
     }
   }
 
