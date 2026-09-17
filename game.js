@@ -963,9 +963,9 @@
   }
 
   // The ground itself is a packed crowd — full silhouettes (same build as
-  // the dance-floor crowd), no separate boundary line. Some arms up, some
-  // down, for the same busy mixed-crowd look as a real festival photo.
-  const GROUND_CROWD_TILE_W = 46;
+  // the dance-floor crowd), no separate boundary line, no gaps between
+  // people, everyone with both arms up like one solid cheering mass.
+  const GROUND_CROWD_TILE_W = 34;
   const GROUND_CROWD_COLOR = "#3a2f52";
   const groundCrowdSlots = [];
   (function initGroundCrowdSlots() {
@@ -973,13 +973,13 @@
     while (x < GROUND_CROWD_TILE_W) {
       groundCrowdSlots.push({
         dx: x,
-        scale: 0.65 + Math.random() * 0.3,
-        armsUp: Math.random() < 0.55,
+        scale: 0.72 + Math.random() * 0.3,
+        armsUp: true,
         phase: Math.random() * 10,
         speed: 1 + Math.random(),
         swayAmt: 0.04 + Math.random() * 0.05,
       });
-      x += 24 + Math.random() * 14;
+      x += 14 + Math.random() * 6;
     }
   })();
 
