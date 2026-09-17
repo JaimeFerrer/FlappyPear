@@ -696,11 +696,15 @@
     ctx.translate(x, boothTopY + bob);
     ctx.rotate(-0.08);
 
-    // arm down on the decks — reaches to the table line, not into it
-    djLimb(-HW * 0.5, -HW * 1.05, -HW * 0.42, 0, HW * 0.4);
+    // arm down on the decks — bent at the elbow, mixing pose
+    const djShoulder = { x: -HW * 0.5, y: -HW * 1.05 };
+    const djElbow = { x: -HW * 0.98, y: -HW * 0.48 };
+    const djHand = { x: -HW * 0.32, y: HW * 0.02 };
+    djLimb(djShoulder.x, djShoulder.y, djElbow.x, djElbow.y, HW * 0.4);
+    djLimb(djElbow.x, djElbow.y, djHand.x, djHand.y, HW * 0.38);
     ctx.fillStyle = LIME;
     ctx.beginPath();
-    ctx.arc(-HW * 0.42, HW * 0.04, HW * 0.2, 0, Math.PI * 2);
+    ctx.arc(djHand.x, djHand.y, HW * 0.2, 0, Math.PI * 2);
     ctx.fill();
 
     // arm thrown up, pumping a little
