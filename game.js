@@ -1202,10 +1202,13 @@
 
     if (best > 0) {
       ctx.save();
-      ctx.font = "500 14px sans-serif";
-      ctx.fillStyle = LIME;
+      ctx.font = "700 17px 'Anton', sans-serif";
       ctx.textAlign = "center";
-      ctx.fillText(`Mejor puntuación: ${best}`, W / 2, H * 0.68);
+      ctx.lineWidth = 4;
+      ctx.strokeStyle = "#000";
+      ctx.strokeText(`Mejor puntuación: ${best}`, W / 2, H * 0.87);
+      ctx.fillStyle = LIME;
+      ctx.fillText(`Mejor puntuación: ${best}`, W / 2, H * 0.87);
       ctx.restore();
     }
   }
