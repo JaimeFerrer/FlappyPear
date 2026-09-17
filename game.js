@@ -143,11 +143,35 @@
     return friend;
   });
 
-  const SHIRT_COLORS = ["#ff5fa2", "#4fd8ff", "#ffd23f", "#a463ff", "#ff7a45", "#4fff9f"];
-  const PANTS_COLORS = ["#2b3a67", "#3d2b45", "#394d3a", "#4a2f2f", "#2f3e4a", "#43354a"];
+  const SHIRT_COLORS = [
+    "#ff5fa2",
+    "#4fd8ff",
+    "#ffd23f",
+    "#a463ff",
+    "#ff7a45",
+    "#4fff9f",
+    "#ff4d4d",
+    "#3b82f6",
+    "#f5f5f5",
+    "#7ee81c",
+    "#e94ff0",
+    "#22d3c9",
+  ];
+  const PANTS_COLORS = [
+    "#2b3a67",
+    "#3d2b45",
+    "#394d3a",
+    "#4a2f2f",
+    "#2f3e4a",
+    "#43354a",
+    "#1f2937",
+    "#5b3a29",
+    "#6b2c2c",
+    "#4a3f6b",
+  ];
+  const SHOE_COLORS = ["#1c1c1c", "#f5f5f5", "#ff4d4d", "#3b82f6", "#ffd23f"];
   const SKIN_COLOR = "#e8b48c";
   const SKIN_SHADOW = "#c98f65";
-  const SHOE_COLOR = "#1c1c1c";
   const OUTLINE = "#161616";
   const DANCER_FADE = 0.35;
   // A "dance floor" row near the bottom, clear of the title/score text and
@@ -168,6 +192,9 @@
     scale: 0.8 + Math.random() * 0.25,
     shirtColor: SHIRT_COLORS[0],
     pantsColor: PANTS_COLORS[0],
+    shoeColor: SHOE_COLORS[0],
+    longSleeve: false,
+    shortPants: false,
   }));
 
   function pickFriend(excludeNames) {
@@ -189,6 +216,9 @@
         slot.scale = 0.85 + Math.random() * 0.3;
         slot.shirtColor = SHIRT_COLORS[Math.floor(Math.random() * SHIRT_COLORS.length)];
         slot.pantsColor = PANTS_COLORS[Math.floor(Math.random() * PANTS_COLORS.length)];
+        slot.shoeColor = SHOE_COLORS[Math.floor(Math.random() * SHOE_COLORS.length)];
+        slot.longSleeve = Math.random() < 0.4;
+        slot.shortPants = Math.random() < 0.4;
         slot.state = "in";
         slot.timer = DANCER_FADE;
       } else if (slot.state === "in") {
@@ -252,6 +282,10 @@
     ctx.stroke();
   }
 
+  function lerpPoint(x1, y1, x2, y2, frac) {
+    return { x: x1 + (x2 - x1) * frac, y: y1 + (y2 - y1) * frac };
+  }
+
   function drawDancer(slot) {
     if (slot.state === "empty" || !slot.friend || !slot.friend.loaded) return;
     let alpha = 1;
@@ -295,10 +329,19 @@
       leftFootY = hipY + legLen;
       rightFootY = hipY + legLen;
     }
-    drawLimb(-HW * 0.16, hipY, leftFootX, leftFootY, legW, slot.pantsColor);
-    drawLimb(HW * 0.16, hipY, rightFootX, rightFootY, legW, slot.pantsColor);
-    drawBlob(leftFootX, leftFootY, legW * 0.55, SHOE_COLOR);
-    drawBlob(rightFootX, rightFootY, legW * 0.55, SHOE_COLOR);
+    if (slot.shortPants) {
+      const leftKnee = lerpPoint(-HW * 0.16, hipY, leftFootX, leftFootY, 0.55);
+      const rightKnee = lerpPoint(HW * 0.16, hipY, rightFootX, rightFootY, 0.55);
+      drawLimb(-HW * 0.16, hipY, leftKnee.x, leftKnee.y, legW, slot.pantsColor);
+      drawLimb(leftKnee.x, leftKnee.y, leftFootX, leftFootY, legW * 0.9, SKIN_COLOR);
+      drawLimb(HW * 0.16, hipY, rightKnee.x, rightKnee.y, legW, slot.pantsColor);
+      drawLimb(rightKnee.x, rightKnee.y, rightFootX, rightFootY, legW * 0.9, SKIN_COLOR);
+    } else {
+      drawLimb(-HW * 0.16, hipY, leftFootX, leftFootY, legW, slot.pantsColor);
+      drawLimb(HW * 0.16, hipY, rightFootX, rightFootY, legW, slot.pantsColor);
+    }
+    drawBlob(leftFootX, leftFootY, legW * 0.55, slot.shoeColor);
+    drawBlob(rightFootX, rightFootY, legW * 0.55, slot.shoeColor);
 
     // shirt (torso)
     drawBlock(-bodyW / 2, 0, bodyW, bodyH, bodyW * 0.32, slot.shirtColor);
@@ -322,8 +365,17 @@
       x: rightShoulder.x + armLen * Math.sin(rightArmAngle),
       y: rightShoulder.y + armLen * Math.cos(rightArmAngle),
     };
-    drawLimb(leftShoulder.x, leftShoulder.y, leftHand.x, leftHand.y, armW, SKIN_COLOR);
-    drawLimb(rightShoulder.x, rightShoulder.y, rightHand.x, rightHand.y, armW, SKIN_COLOR);
+    if (slot.longSleeve) {
+      const leftElbow = lerpPoint(leftShoulder.x, leftShoulder.y, leftHand.x, leftHand.y, 0.5);
+      const rightElbow = lerpPoint(rightShoulder.x, rightShoulder.y, rightHand.x, rightHand.y, 0.5);
+      drawLimb(leftShoulder.x, leftShoulder.y, leftElbow.x, leftElbow.y, armW, slot.shirtColor);
+      drawLimb(leftElbow.x, leftElbow.y, leftHand.x, leftHand.y, armW * 0.88, SKIN_COLOR);
+      drawLimb(rightShoulder.x, rightShoulder.y, rightElbow.x, rightElbow.y, armW, slot.shirtColor);
+      drawLimb(rightElbow.x, rightElbow.y, rightHand.x, rightHand.y, armW * 0.88, SKIN_COLOR);
+    } else {
+      drawLimb(leftShoulder.x, leftShoulder.y, leftHand.x, leftHand.y, armW, SKIN_COLOR);
+      drawLimb(rightShoulder.x, rightShoulder.y, rightHand.x, rightHand.y, armW, SKIN_COLOR);
+    }
     drawBlob(leftHand.x, leftHand.y, armW * 0.62, SKIN_SHADOW);
     drawBlob(rightHand.x, rightHand.y, armW * 0.62, SKIN_SHADOW);
 
