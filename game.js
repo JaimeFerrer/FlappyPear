@@ -109,6 +109,14 @@
   };
   pearImg.src = "assets/pera-pablo.png";
 
+  // Club sign hanging above the DJ booth.
+  const coliseumImg = new Image();
+  let coliseumLoaded = false;
+  coliseumImg.onload = () => {
+    coliseumLoaded = true;
+  };
+  coliseumImg.src = "assets/coliseum-sign.png";
+
   // Background party guests — friends' faces on little dancing bodies.
   const FRIEND_NAMES = [
     "Tomy",
@@ -421,7 +429,7 @@
 
   // A little DJ booth at the back of the floor, with a big rave-style
   // "TEKNO" sign hanging above it.
-  const DJ_CX = W * 0.66;
+  const DJ_CX = W / 2;
   const STAGE_TOP = FLOOR_TOP - 8;
   const BOOTH_W = 128;
   const BOOTH_H = 58;
@@ -458,7 +466,7 @@
     }
 
     drawDjSilhouette(DJ_CX, BOOTH_Y);
-    drawTeknoSign(DJ_CX, BOOTH_Y - 78);
+    drawColiseumSign(DJ_CX + 22, BOOTH_Y - 12);
   }
 
   function drawDjSilhouette(x, boothTopY) {
@@ -513,35 +521,28 @@
     ctx.restore();
   }
 
-  function drawTeknoSign(cx, cy) {
-    const text = "TEKNO";
-    const colors = [LIME, "#ff5fa2", "#4fd8ff", "#ffd23f", "#a463ff"];
+  // "Coliseum" club sign, hanging above the booth with a pulsing glow like
+  // it's lit up by neon/spotlights.
+  function drawColiseumSign(cx, bottomY) {
+    if (!coliseumLoaded) return;
+    const w = 132;
+    const h = w / (coliseumImg.naturalWidth / coliseumImg.naturalHeight);
+    const cy = bottomY - h / 2;
+
+    const glowPulse = 0.5 + 0.5 * Math.sin(elapsed * 2.2);
+    const sway = Math.sin(elapsed * 1.5) * 0.03;
+
     ctx.save();
-    ctx.font = "700 46px 'Bangers', 'Anton', sans-serif";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
+    ctx.translate(cx, cy);
+    ctx.rotate(sway);
 
-    const letters = text.split("");
-    const widths = letters.map((l) => ctx.measureText(l).width);
-    const spacing = 4;
-    const totalW = widths.reduce((a, b) => a + b, 0) + spacing * (letters.length - 1);
-    let x = cx - totalW / 2;
+    ctx.shadowColor = "rgba(255,255,255,0.95)";
+    ctx.shadowBlur = 10 + glowPulse * 18;
+    ctx.drawImage(coliseumImg, -w / 2, -h / 2, w, h);
 
-    letters.forEach((l, i) => {
-      const w = widths[i];
-      const jitter = Math.sin(elapsed * 3 + i * 1.3) * 3;
-      const rot = Math.sin(elapsed * 2.4 + i) * 0.05 + (i % 2 === 0 ? -0.03 : 0.03);
-      ctx.save();
-      ctx.translate(x + w / 2, cy + jitter);
-      ctx.rotate(rot);
-      ctx.lineWidth = 5;
-      ctx.strokeStyle = "#000";
-      ctx.strokeText(l, 0, 0);
-      ctx.fillStyle = colors[i % colors.length];
-      ctx.fillText(l, 0, 0);
-      ctx.restore();
-      x += w + spacing;
-    });
+    ctx.shadowColor = "rgba(79,255,153,0.85)";
+    ctx.shadowBlur = 20 + glowPulse * 24;
+    ctx.drawImage(coliseumImg, -w / 2, -h / 2, w, h);
 
     ctx.restore();
   }
