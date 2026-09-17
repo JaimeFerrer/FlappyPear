@@ -105,6 +105,187 @@
   };
   pearImg.src = "assets/pera-pablo.png";
 
+  // Background party guests — friends' faces on little dancing bodies.
+  const FRIEND_NAMES = [
+    "Tomy",
+    "Nacho",
+    "Pajarillo",
+    "Jaime",
+    "Betato",
+    "Totti",
+    "Laura",
+    "Jordas",
+    "Carlos",
+    "Canudas",
+    "Fer",
+    "Boix",
+  ];
+  const friends = FRIEND_NAMES.map((name) => {
+    const img = new Image();
+    const friend = { name, img, loaded: false, aspect: 0.7 };
+    img.onload = () => {
+      friend.loaded = true;
+      friend.aspect = img.naturalWidth / img.naturalHeight;
+    };
+    img.src = `assets/friends/${name}.png`;
+    return friend;
+  });
+
+  const DANCER_COLORS = ["#ff5fa2", "#4fd8ff", "#ffd23f", "#a463ff", "#ff7a45", "#4fff9f"];
+  const DANCER_FADE = 0.35;
+  // A "dance floor" row near the bottom, clear of the title/score text and
+  // the player's fixed x position.
+  const dancerSlots = [
+    { xf: 0.12, yf: 0.7 },
+    { xf: 0.36, yf: 0.79 },
+    { xf: 0.63, yf: 0.73 },
+    { xf: 0.88, yf: 0.8 },
+  ].map((slot) => ({
+    ...slot,
+    state: "empty",
+    timer: 1 + Math.random() * 5,
+    friend: null,
+    mode: "dance",
+    phase: Math.random() * 10,
+    speed: 2.2 + Math.random() * 1.4,
+    scale: 0.8 + Math.random() * 0.25,
+    color: DANCER_COLORS[0],
+  }));
+
+  function pickFriend(excludeNames) {
+    const pool = friends.filter((f) => !excludeNames.includes(f.name));
+    const list = pool.length ? pool : friends;
+    return list[Math.floor(Math.random() * list.length)];
+  }
+
+  function updateDancers(dt) {
+    const active = dancerSlots.filter((s) => s.state !== "empty" && s.friend).map((s) => s.friend.name);
+    for (const slot of dancerSlots) {
+      slot.timer -= dt;
+      if (slot.timer > 0) continue;
+      if (slot.state === "empty") {
+        slot.friend = pickFriend(active);
+        slot.mode = Math.random() < 0.5 ? "dance" : "wave";
+        slot.phase = Math.random() * 10;
+        slot.speed = 2.2 + Math.random() * 1.4;
+        slot.scale = 0.85 + Math.random() * 0.3;
+        slot.color = DANCER_COLORS[Math.floor(Math.random() * DANCER_COLORS.length)];
+        slot.state = "in";
+        slot.timer = DANCER_FADE;
+      } else if (slot.state === "in") {
+        slot.state = "active";
+        slot.timer = 3 + Math.random() * 3;
+      } else if (slot.state === "active") {
+        slot.state = "out";
+        slot.timer = DANCER_FADE;
+      } else if (slot.state === "out") {
+        slot.state = "empty";
+        slot.friend = null;
+        slot.timer = 1.5 + Math.random() * 3;
+      }
+    }
+  }
+
+  function roundRect(x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+
+  function drawLimbArm(shoulderX, shoulderY, sideSign, angle, len, color, width) {
+    const handX = shoulderX + sideSign * len * Math.sin(angle);
+    const handY = shoulderY + len * Math.cos(angle);
+    ctx.strokeStyle = color;
+    ctx.lineWidth = width;
+    ctx.lineCap = "round";
+    ctx.beginPath();
+    ctx.moveTo(shoulderX, shoulderY);
+    ctx.lineTo(handX, handY);
+    ctx.stroke();
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.arc(handX, handY, width * 0.6, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  function drawDancer(slot) {
+    if (slot.state === "empty" || !slot.friend || !slot.friend.loaded) return;
+    let alpha = 1;
+    if (slot.state === "in") alpha = 1 - slot.timer / DANCER_FADE;
+    else if (slot.state === "out") alpha = slot.timer / DANCER_FADE;
+    alpha = Math.max(0, Math.min(1, alpha));
+    if (alpha <= 0) return;
+
+    const HW = 40 * slot.scale;
+    const headH = HW / slot.friend.aspect;
+    const bodyW = HW * 1.05;
+    const bodyH = HW * 1.55;
+    const legLen = HW * 1.45;
+    const armLen = HW * 1.1;
+    const t = elapsed * slot.speed + slot.phase;
+    const isDance = slot.mode === "dance";
+
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.translate(slot.xf * W, slot.yf * H);
+    ctx.rotate(Math.sin(t * (isDance ? 2 : 0.8)) * (isDance ? 0.1 : 0.05));
+
+    // legs
+    const hipY = bodyH;
+    let leftFootX, rightFootX, leftFootY, rightFootY;
+    if (isDance) {
+      leftFootX = -HW * 0.32 + Math.sin(t * 2) * HW * 0.15;
+      rightFootX = HW * 0.32 + Math.sin(t * 2 + Math.PI) * HW * 0.15;
+      leftFootY = hipY + legLen - Math.max(0, Math.sin(t * 2 + Math.PI)) * HW * 0.18;
+      rightFootY = hipY + legLen - Math.max(0, Math.sin(t * 2)) * HW * 0.18;
+    } else {
+      leftFootX = -HW * 0.26;
+      rightFootX = HW * 0.26;
+      leftFootY = hipY + legLen;
+      rightFootY = hipY + legLen;
+    }
+    ctx.strokeStyle = slot.color;
+    ctx.lineWidth = HW * 0.2;
+    ctx.lineCap = "round";
+    ctx.beginPath();
+    ctx.moveTo(0, hipY);
+    ctx.lineTo(leftFootX, leftFootY);
+    ctx.moveTo(0, hipY);
+    ctx.lineTo(rightFootX, rightFootY);
+    ctx.stroke();
+
+    // torso
+    ctx.fillStyle = slot.color;
+    roundRect(-bodyW / 2, 0, bodyW, bodyH, bodyW * 0.35);
+    ctx.fill();
+
+    // arms
+    let leftArmAngle, rightArmAngle;
+    if (isDance) {
+      leftArmAngle = Math.PI * 0.55 + Math.sin(t * 2) * 0.9;
+      rightArmAngle = Math.PI * 0.55 + Math.sin(t * 2 + Math.PI) * 0.9;
+    } else {
+      leftArmAngle = 0.15 + Math.sin(t * 0.8) * 0.1;
+      rightArmAngle = Math.PI * 0.85 + Math.sin(t * 5) * 0.35;
+    }
+    drawLimbArm(-bodyW / 2, HW * 0.15, -1, leftArmAngle, armLen, slot.color, HW * 0.17);
+    drawLimbArm(bodyW / 2, HW * 0.15, 1, rightArmAngle, armLen, slot.color, HW * 0.17);
+
+    // head
+    const headBob = isDance ? Math.sin(t * 2) * HW * 0.1 : Math.sin(t * 0.8) * HW * 0.04;
+    ctx.drawImage(slot.friend.img, -HW / 2, -headH + headBob + 2, HW, headH);
+
+    ctx.restore();
+  }
+
+  function drawDancers() {
+    for (const slot of dancerSlots) drawDancer(slot);
+  }
+
   let pipes = []; // {x, gapY, passed}
   let timeSincePipe = 0;
   let groundOffset = 0;
@@ -179,6 +360,8 @@
 
     // disco ball top-right
     drawDiscoBall(W - 60, 50, 26, elapsed);
+
+    drawDancers();
   }
 
   function drawDiscoBall(cx, cy, r, t) {
@@ -482,6 +665,8 @@
     let dt = (ts - lastTime) / 1000;
     dt = Math.min(dt, 0.035);
     lastTime = ts;
+
+    updateDancers(dt);
 
     if (state === STATE.READY) {
       elapsed += dt;
