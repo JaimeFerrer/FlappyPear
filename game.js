@@ -57,6 +57,9 @@
   const PEAR_R = H * PEAR_RADIUS_RATIO;
   const PIPE_W = W * PIPE_WIDTH_RATIO;
   const PIPE_GAP = H * PIPE_GAP_RATIO;
+  const DISCO_BALL_X = W / 2;
+  const DISCO_BALL_Y = 46;
+  const DISCO_BALL_R = 30;
 
   // ---------- Audio (simple WebAudio beeps, no external files) ----------
   let audioCtx = null;
@@ -401,10 +404,76 @@
       ctx.fill();
     }
 
-    // disco ball top-right
-    drawDiscoBall(W - 60, 50, 26, elapsed);
+    drawDanceFloor();
+
+    // disco ball centered on the ceiling, beaming light down over the floor
+    drawDiscoLights(DISCO_BALL_X, DISCO_BALL_Y, elapsed);
+    drawDiscoBall(DISCO_BALL_X, DISCO_BALL_Y, DISCO_BALL_R, elapsed);
 
     drawDancers();
+  }
+
+  // A dance floor band just above the game's own ground, so the background
+  // dancers read as standing on something instead of floating in the sky.
+  function drawDanceFloor() {
+    const floorTop = GROUND_Y - 150;
+    const tile = 40;
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(0, floorTop, W, GROUND_Y - floorTop);
+    ctx.clip();
+
+    const grad = ctx.createLinearGradient(0, floorTop, 0, GROUND_Y);
+    grad.addColorStop(0, "#150a20");
+    grad.addColorStop(1, "#241338");
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, floorTop, W, GROUND_Y - floorTop);
+
+    ctx.fillStyle = "rgba(255,255,255,0.05)";
+    for (let gx = groundOffset - tile * 2; gx < W; gx += tile) {
+      for (let gy = floorTop; gy < GROUND_Y; gy += tile) {
+        const col = Math.round(gx / tile) + Math.round((gy - floorTop) / tile);
+        if (col % 2 === 0) ctx.fillRect(gx, gy, tile, tile);
+      }
+    }
+
+    ctx.strokeStyle = "rgba(214,255,47,0.5)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(0, floorTop);
+    ctx.lineTo(W, floorTop);
+    ctx.stroke();
+
+    ctx.restore();
+  }
+
+  // Colored beams radiating from the disco ball, like light bouncing off it.
+  function drawDiscoLights(cx, cy, t) {
+    const colors = ["#4fd8ff", "#ff5fa2", "#ffd23f"];
+    const rayCount = 9;
+    const rotation = t * 0.15;
+    const len = Math.max(W, H) * 0.85;
+    const spread = 0.05;
+    ctx.save();
+    for (let i = 0; i < rayCount; i++) {
+      const angle = (i / rayCount) * Math.PI * 2 + rotation;
+      const color = colors[i % colors.length];
+      const x1 = cx + Math.cos(angle - spread) * len;
+      const y1 = cy + Math.sin(angle - spread) * len;
+      const x2 = cx + Math.cos(angle + spread) * len;
+      const y2 = cy + Math.sin(angle + spread) * len;
+      const grad = ctx.createLinearGradient(cx, cy, (x1 + x2) / 2, (y1 + y2) / 2);
+      grad.addColorStop(0, color + "5c");
+      grad.addColorStop(1, color + "00");
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.closePath();
+      ctx.fill();
+    }
+    ctx.restore();
   }
 
   function drawDiscoBall(cx, cy, r, t) {
@@ -605,9 +674,9 @@
     ctx.textAlign = "center";
     ctx.lineWidth = 5;
     ctx.strokeStyle = "#000";
-    ctx.strokeText(String(score), W / 2, 70);
+    ctx.strokeText(String(score), W / 2, 118);
     ctx.fillStyle = "#fff";
-    ctx.fillText(String(score), W / 2, 70);
+    ctx.fillText(String(score), W / 2, 118);
     ctx.restore();
   }
 
