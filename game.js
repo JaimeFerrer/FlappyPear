@@ -60,6 +60,7 @@
   const DISCO_BALL_X = W / 2;
   const DISCO_BALL_Y = 46;
   const DISCO_BALL_R = 30;
+  const FLOOR_TOP = GROUND_Y - 150;
 
   // ---------- Audio (simple WebAudio beeps, no external files) ----------
   let audioCtx = null;
@@ -332,6 +333,92 @@
     for (const slot of dancerSlots) drawDancer(slot);
   }
 
+  // A packed crowd of generic silhouettes filling the dance floor, so the
+  // named friends look like they're popping out from among a full club.
+  const CROWD_COLOR_BACK = "#2a2038";
+  const CROWD_COLOR_FRONT = "#160f21";
+  const crowdFigures = [];
+  for (let i = 0; i < 16; i++) {
+    crowdFigures.push({
+      x: Math.random() * W,
+      yf: 0.05 + Math.random() * 0.4,
+      scale: 0.5 + Math.random() * 0.22,
+      color: CROWD_COLOR_BACK,
+      armsUp: Math.random() < 0.4,
+      phase: Math.random() * 10,
+      speed: 0.9 + Math.random() * 1.1,
+      swayAmt: 0.07 + Math.random() * 0.07,
+    });
+  }
+  for (let i = 0; i < 11; i++) {
+    crowdFigures.push({
+      x: Math.random() * W,
+      yf: 0.42 + Math.random() * 0.52,
+      scale: 0.75 + Math.random() * 0.28,
+      color: CROWD_COLOR_FRONT,
+      armsUp: Math.random() < 0.4,
+      phase: Math.random() * 10,
+      speed: 0.9 + Math.random() * 1.1,
+      swayAmt: 0.09 + Math.random() * 0.09,
+    });
+  }
+
+  function drawSilhouette(x, y, scale, color, armsUp, sway) {
+    const HW = 15 * scale;
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(sway);
+    ctx.fillStyle = color;
+
+    // head
+    ctx.beginPath();
+    ctx.arc(0, -HW * 2.6, HW * 0.9, 0, Math.PI * 2);
+    ctx.fill();
+
+    // torso tapering into two legs
+    ctx.beginPath();
+    ctx.moveTo(-HW * 0.9, -HW * 1.7);
+    ctx.lineTo(HW * 0.9, -HW * 1.7);
+    ctx.lineTo(HW * 0.5, -HW * 0.2);
+    ctx.lineTo(HW * 0.85, HW * 1.8);
+    ctx.lineTo(HW * 0.25, HW * 1.8);
+    ctx.lineTo(HW * 0.15, -HW * 0.1);
+    ctx.lineTo(-HW * 0.15, -HW * 0.1);
+    ctx.lineTo(-HW * 0.25, HW * 1.8);
+    ctx.lineTo(-HW * 0.85, HW * 1.8);
+    ctx.lineTo(-HW * 0.5, -HW * 0.2);
+    ctx.closePath();
+    ctx.fill();
+
+    // arms
+    ctx.strokeStyle = color;
+    ctx.lineWidth = HW * 0.45;
+    ctx.lineCap = "round";
+    ctx.beginPath();
+    if (armsUp) {
+      ctx.moveTo(-HW * 0.8, -HW * 1.5);
+      ctx.lineTo(-HW * 1.3, -HW * 3.3);
+      ctx.moveTo(HW * 0.8, -HW * 1.5);
+      ctx.lineTo(HW * 1.3, -HW * 3.3);
+    } else {
+      ctx.moveTo(-HW * 0.8, -HW * 1.5);
+      ctx.lineTo(-HW * 1.4, -HW * 0.2);
+      ctx.moveTo(HW * 0.8, -HW * 1.5);
+      ctx.lineTo(HW * 1.5, -HW * 0.7);
+    }
+    ctx.stroke();
+
+    ctx.restore();
+  }
+
+  function drawCrowd() {
+    for (const f of crowdFigures) {
+      const y = FLOOR_TOP + f.yf * (GROUND_Y - FLOOR_TOP);
+      const sway = Math.sin(elapsed * f.speed + f.phase) * f.swayAmt;
+      drawSilhouette(f.x, y, f.scale, f.color, f.armsUp, sway);
+    }
+  }
+
   let pipes = []; // {x, gapY, passed}
   let timeSincePipe = 0;
   let groundOffset = 0;
@@ -405,6 +492,7 @@
     }
 
     drawDanceFloor();
+    drawCrowd();
 
     // disco ball centered on the ceiling, beaming light down over the floor
     drawDiscoLights(DISCO_BALL_X, DISCO_BALL_Y, elapsed);
@@ -416,7 +504,7 @@
   // A dance floor band just above the game's own ground, so the background
   // dancers read as standing on something instead of floating in the sky.
   function drawDanceFloor() {
-    const floorTop = GROUND_Y - 150;
+    const floorTop = FLOOR_TOP;
     const tile = 40;
     ctx.save();
     ctx.beginPath();
@@ -530,27 +618,101 @@
     }
   }
 
+  // Speaker cabinet, tiled to fit any obstacle length — same footprint and
+  // colors as the old plain pipe, just drawn as stacked PA speakers.
+  function drawSpeakerCabinet(x, y, w, h) {
+    ctx.fillStyle = "#0f1a0a";
+    ctx.strokeStyle = LIME;
+    ctx.lineWidth = 3;
+    ctx.fillRect(x, y, w, h);
+    ctx.strokeRect(x, y, w, h);
+    if (h <= 0) return;
+
+    const unit = 95;
+    const count = Math.max(1, Math.round(h / unit));
+    const unitH = h / count;
+    for (let i = 0; i < count; i++) {
+      const uy = y + i * unitH;
+      if (i > 0) {
+        ctx.beginPath();
+        ctx.moveTo(x, uy);
+        ctx.lineTo(x + w, uy);
+        ctx.strokeStyle = "rgba(214,255,47,0.55)";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+
+      const cx = x + w / 2;
+      const cy = uy + unitH / 2;
+      const rOuter = Math.min(w * 0.42, unitH * 0.38);
+
+      // woofer
+      ctx.beginPath();
+      ctx.arc(cx, cy, rOuter, 0, Math.PI * 2);
+      ctx.fillStyle = "#05070a";
+      ctx.fill();
+      ctx.strokeStyle = LIME;
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(cx, cy, rOuter * 0.55, 0, Math.PI * 2);
+      ctx.strokeStyle = "rgba(214,255,47,0.65)";
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(cx, cy, rOuter * 0.16, 0, Math.PI * 2);
+      ctx.fillStyle = LIME;
+      ctx.fill();
+
+      // corner bolts
+      const bx = w * 0.3;
+      const by = rOuter + 8;
+      ctx.fillStyle = "rgba(214,255,47,0.7)";
+      for (const dx of [-bx, bx]) {
+        for (const dy of [-by, by]) {
+          const py = cy + dy;
+          if (py > uy + 4 && py < uy + unitH - 4) {
+            ctx.beginPath();
+            ctx.arc(cx + dx, py, 2, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+      }
+    }
+  }
+
+  function drawSpeakerCap(x, y, w, h) {
+    ctx.fillStyle = "#0f1a0a";
+    ctx.strokeStyle = LIME;
+    ctx.lineWidth = 3;
+    ctx.fillRect(x, y, w, h);
+    ctx.strokeRect(x, y, w, h);
+
+    const dots = 5;
+    const margin = w * 0.15;
+    const usable = w - margin * 2;
+    ctx.fillStyle = "rgba(214,255,47,0.7)";
+    for (let i = 0; i < dots; i++) {
+      const dx = x + margin + (usable * i) / (dots - 1);
+      ctx.beginPath();
+      ctx.arc(dx, y + h / 2, 2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
   function drawPipe(pipe) {
     const topH = pipe.gapY - PIPE_GAP / 2;
     const bottomY = pipe.gapY + PIPE_GAP / 2;
     const bottomH = GROUND_Y - bottomY;
     const capH = 22;
 
-    ctx.fillStyle = "#0f1a0a";
-    ctx.strokeStyle = LIME;
-    ctx.lineWidth = 3;
+    // top speaker stack
+    drawSpeakerCabinet(pipe.x, 0, PIPE_W, topH);
+    drawSpeakerCap(pipe.x - 5, topH - capH, PIPE_W + 10, capH);
 
-    // top pipe
-    ctx.fillRect(pipe.x, 0, PIPE_W, topH);
-    ctx.strokeRect(pipe.x, 0, PIPE_W, topH);
-    ctx.fillRect(pipe.x - 5, topH - capH, PIPE_W + 10, capH);
-    ctx.strokeRect(pipe.x - 5, topH - capH, PIPE_W + 10, capH);
-
-    // bottom pipe
-    ctx.fillRect(pipe.x, bottomY, PIPE_W, bottomH);
-    ctx.strokeRect(pipe.x, bottomY, PIPE_W, bottomH);
-    ctx.fillRect(pipe.x - 5, bottomY, PIPE_W + 10, capH);
-    ctx.strokeRect(pipe.x - 5, bottomY, PIPE_W + 10, capH);
+    // bottom speaker stack
+    drawSpeakerCabinet(pipe.x, bottomY, PIPE_W, bottomH);
+    drawSpeakerCap(pipe.x - 5, bottomY, PIPE_W + 10, capH);
   }
 
   function drawPear() {
