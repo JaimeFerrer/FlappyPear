@@ -169,7 +169,7 @@
     "#6b2c2c",
     "#4a3f6b",
   ];
-  const SHOE_COLORS = ["#1c1c1c", "#f5f5f5", "#ff4d4d", "#3b82f6", "#ffd23f"];
+  const SHOE_COLORS = ["#141414", "#241f1a", "#1c1c24", "#20241f", "#241416"];
   const SKIN_COLOR = "#e8b48c";
   const SKIN_SHADOW = "#c98f65";
   const OUTLINE = "#161616";
@@ -194,7 +194,6 @@
     pantsColor: PANTS_COLORS[0],
     shoeColor: SHOE_COLORS[0],
     longSleeve: false,
-    shortPants: false,
   }));
 
   function pickFriend(excludeNames) {
@@ -218,7 +217,6 @@
         slot.pantsColor = PANTS_COLORS[Math.floor(Math.random() * PANTS_COLORS.length)];
         slot.shoeColor = SHOE_COLORS[Math.floor(Math.random() * SHOE_COLORS.length)];
         slot.longSleeve = Math.random() < 0.4;
-        slot.shortPants = Math.random() < 0.4;
         slot.state = "in";
         slot.timer = DANCER_FADE;
       } else if (slot.state === "in") {
@@ -329,17 +327,8 @@
       leftFootY = hipY + legLen;
       rightFootY = hipY + legLen;
     }
-    if (slot.shortPants) {
-      const leftKnee = lerpPoint(-HW * 0.16, hipY, leftFootX, leftFootY, 0.55);
-      const rightKnee = lerpPoint(HW * 0.16, hipY, rightFootX, rightFootY, 0.55);
-      drawLimb(-HW * 0.16, hipY, leftKnee.x, leftKnee.y, legW, slot.pantsColor);
-      drawLimb(leftKnee.x, leftKnee.y, leftFootX, leftFootY, legW * 0.9, SKIN_COLOR);
-      drawLimb(HW * 0.16, hipY, rightKnee.x, rightKnee.y, legW, slot.pantsColor);
-      drawLimb(rightKnee.x, rightKnee.y, rightFootX, rightFootY, legW * 0.9, SKIN_COLOR);
-    } else {
-      drawLimb(-HW * 0.16, hipY, leftFootX, leftFootY, legW, slot.pantsColor);
-      drawLimb(HW * 0.16, hipY, rightFootX, rightFootY, legW, slot.pantsColor);
-    }
+    drawLimb(-HW * 0.16, hipY, leftFootX, leftFootY, legW, slot.pantsColor);
+    drawLimb(HW * 0.16, hipY, rightFootX, rightFootY, legW, slot.pantsColor);
     drawBlob(leftFootX, leftFootY, legW * 0.55, slot.shoeColor);
     drawBlob(rightFootX, rightFootY, legW * 0.55, slot.shoeColor);
 
