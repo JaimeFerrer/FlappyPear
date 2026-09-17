@@ -473,23 +473,34 @@
 
   // DJ icon pose: leaning over the decks, one arm working the turntable,
   // the other thrown up in the air — flat shapes in the game's own colors.
+  // A limb with a bright rim so it still reads against the black sky —
+  // thicker lime stroke underneath, dark body-colored stroke on top.
+  function djLimb(x1, y1, x2, y2, width) {
+    ctx.lineCap = "round";
+    ctx.strokeStyle = LIME;
+    ctx.lineWidth = width + 3;
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+    ctx.strokeStyle = "#241934";
+    ctx.lineWidth = width;
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+  }
+
   function drawDjSilhouette(x, boothTopY) {
     const HW = 27;
     const bob = Math.sin(elapsed * 3) * 2;
     const bodyColor = "#241934";
-    const outline = "rgba(214,255,47,0.55)";
     ctx.save();
     ctx.translate(x, boothTopY + bob);
-    ctx.rotate(-0.1);
+    ctx.rotate(-0.08);
 
     // arm down on the decks
-    ctx.strokeStyle = bodyColor;
-    ctx.lineWidth = HW * 0.5;
-    ctx.lineCap = "round";
-    ctx.beginPath();
-    ctx.moveTo(-HW * 0.75, -HW * 0.95);
-    ctx.lineTo(-HW * 0.55, HW * 0.3);
-    ctx.stroke();
+    djLimb(-HW * 0.7, -HW * 0.95, -HW * 0.5, HW * 0.32, HW * 0.46);
     ctx.fillStyle = LIME;
     ctx.beginPath();
     ctx.arc(-HW * 0.5, HW * 0.38, HW * 0.22, 0, Math.PI * 2);
@@ -497,28 +508,33 @@
 
     // arm thrown up, pumping a little
     const pump = Math.sin(elapsed * 4) * 0.08;
-    ctx.strokeStyle = bodyColor;
-    ctx.lineWidth = HW * 0.5;
+    djLimb(HW * 0.6, -HW * 1.1, HW * 1.85 + pump * 18, -HW * 2.75 - pump * 12, HW * 0.46);
+
+    // Body as one continuous silhouette (torso + head), not a rect stacked
+    // on a circle: stroke both shapes first, then fill both on top so each
+    // fill swallows the other shape's stroke where they overlap, leaving
+    // only the true outer outline visible.
+    const headCy = -HW * 2.0;
+    const torsoX = -HW * 0.85;
+    const torsoY = -HW * 1.3;
+    const torsoW = HW * 1.7;
+    const torsoH = HW * 1.45;
+    const torsoR = HW * 0.82;
+
+    ctx.strokeStyle = LIME;
+    ctx.lineWidth = 3;
+    roundRectPath(torsoX, torsoY, torsoW, torsoH, torsoR);
+    ctx.stroke();
     ctx.beginPath();
-    ctx.moveTo(HW * 0.7, -HW * 1.05);
-    ctx.lineTo(HW * 1.75 + pump * 18, -HW * 2.65 - pump * 12);
+    ctx.arc(0, headCy, HW * 0.95, 0, Math.PI * 2);
     ctx.stroke();
 
-    // torso, leaning forward over the booth
     ctx.fillStyle = bodyColor;
-    ctx.strokeStyle = outline;
-    ctx.lineWidth = 1.5;
-    roundRectPath(-HW * 0.95, -HW * 1.35, HW * 1.9, HW * 1.5, HW * 0.55);
+    roundRectPath(torsoX, torsoY, torsoW, torsoH, torsoR);
     ctx.fill();
-    ctx.stroke();
-
-    // head
-    const headCy = -HW * 2.35;
-    ctx.fillStyle = bodyColor;
     ctx.beginPath();
     ctx.arc(0, headCy, HW * 0.95, 0, Math.PI * 2);
     ctx.fill();
-    ctx.stroke();
 
     // headphones: a band over the head plus rounded ear cups
     ctx.strokeStyle = LIME;
