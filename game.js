@@ -986,20 +986,25 @@
     if (groundOffset < -40) groundOffset += 40;
     groundCrowdOffset -= GROUND_CROWD_SPEED * dt;
 
-    ctx.fillStyle = "#0d1207";
+    // Same black as the crowd artwork itself, so the ground below it
+    // doesn't show as a different-colored strip under the silhouette.
+    ctx.fillStyle = "#000000";
     ctx.fillRect(0, GROUND_Y, W, H - GROUND_Y);
 
     drawGroundCrowd();
   }
 
+  // Tiles overlap by this much so the same-silhouette repeat blends into
+  // itself instead of reading as a hard seam where one copy ends.
+  const GROUND_CROWD_OVERLAP = 26;
+
   function drawGroundCrowd() {
     if (!groundCrowdLoaded || groundCrowdW <= 0) return;
     const y = GROUND_Y - GROUND_CROWD_H;
-    const offset = ((groundCrowdOffset % groundCrowdW) + groundCrowdW) % groundCrowdW;
-    // Round to whole pixels and overlap tiles by 1px so sub-pixel rounding
-    // never leaves a hairline gap between copies.
-    for (let x = Math.round(-offset - groundCrowdW); x < W; x += Math.round(groundCrowdW)) {
-      ctx.drawImage(groundCrowdImg, x, y, Math.round(groundCrowdW) + 1, GROUND_CROWD_H);
+    const stride = Math.round(groundCrowdW) - GROUND_CROWD_OVERLAP;
+    const offset = ((groundCrowdOffset % stride) + stride) % stride;
+    for (let x = Math.round(-offset - stride); x < W; x += stride) {
+      ctx.drawImage(groundCrowdImg, x, y, Math.round(groundCrowdW), GROUND_CROWD_H);
     }
   }
 
