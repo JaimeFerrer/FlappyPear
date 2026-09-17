@@ -962,47 +962,44 @@
     ctx.stroke();
   }
 
-  // A dense crowd skyline along the ground line instead of plain dashes —
-  // the same person silhouette (both arms up) repeated edge to edge.
-  const GROUND_CROWD_TILE_W = 30;
-  const GROUND_CROWD_HEAD_R = 7.5;
-  const GROUND_CROWD_COLOR = "#160f21";
+  // The ground itself is a packed crowd — full silhouettes (same build as
+  // the dance-floor crowd), no separate boundary line. Some arms up, some
+  // down, for the same busy mixed-crowd look as a real festival photo.
+  const GROUND_CROWD_TILE_W = 46;
+  const GROUND_CROWD_COLOR = "#3a2f52";
+  const groundCrowdSlots = [];
+  (function initGroundCrowdSlots() {
+    let x = 2;
+    while (x < GROUND_CROWD_TILE_W) {
+      groundCrowdSlots.push({
+        dx: x,
+        scale: 0.65 + Math.random() * 0.3,
+        armsUp: Math.random() < 0.55,
+        phase: Math.random() * 10,
+        speed: 1 + Math.random(),
+        swayAmt: 0.04 + Math.random() * 0.05,
+      });
+      x += 24 + Math.random() * 14;
+    }
+  })();
 
   function drawGround(dt) {
     groundOffset -= PIPE_SPEED * dt;
-    if (groundOffset < -40) groundOffset += 40;
+    if (groundOffset < -GROUND_CROWD_TILE_W) groundOffset += GROUND_CROWD_TILE_W;
 
     ctx.fillStyle = "#0d1207";
     ctx.fillRect(0, GROUND_Y, W, H - GROUND_Y);
-
-    ctx.strokeStyle = LIME;
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.moveTo(0, GROUND_Y);
-    ctx.lineTo(W, GROUND_Y);
-    ctx.stroke();
 
     drawGroundCrowd();
   }
 
   function drawGroundCrowd() {
-    const r = GROUND_CROWD_HEAD_R;
-    ctx.fillStyle = GROUND_CROWD_COLOR;
-    ctx.strokeStyle = GROUND_CROWD_COLOR;
-    for (let cx = groundOffset - GROUND_CROWD_TILE_W; cx < W; cx += GROUND_CROWD_TILE_W) {
-      const headCy = GROUND_Y - r + 3;
-      ctx.beginPath();
-      ctx.arc(cx, headCy, r, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillRect(cx - r * 0.85, headCy, r * 1.7, GROUND_Y - headCy + 12);
-      ctx.lineWidth = r * 0.42;
-      ctx.lineCap = "round";
-      ctx.beginPath();
-      ctx.moveTo(cx - r * 0.55, headCy + r * 0.5);
-      ctx.lineTo(cx - r * 1.5, headCy - r * 1.5);
-      ctx.moveTo(cx + r * 0.55, headCy + r * 0.5);
-      ctx.lineTo(cx + r * 1.5, headCy - r * 1.5);
-      ctx.stroke();
+    for (let baseX = groundOffset - GROUND_CROWD_TILE_W; baseX < W; baseX += GROUND_CROWD_TILE_W) {
+      for (const s of groundCrowdSlots) {
+        const cx = baseX + s.dx;
+        const sway = Math.sin(elapsed * s.speed + s.phase) * s.swayAmt;
+        drawSilhouette(cx, GROUND_Y, s.scale, GROUND_CROWD_COLOR, s.armsUp, sway);
+      }
     }
   }
 
