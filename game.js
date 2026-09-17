@@ -1219,9 +1219,9 @@
     ctx.textAlign = "center";
     ctx.lineWidth = 5;
     ctx.strokeStyle = "#000";
-    ctx.strokeText(String(score), W / 2, 118);
+    ctx.strokeText(String(score), W / 2, 130);
     ctx.fillStyle = "#fff";
-    ctx.fillText(String(score), W / 2, 118);
+    ctx.fillText(String(score), W / 2, 130);
     ctx.restore();
   }
 
