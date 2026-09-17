@@ -117,6 +117,11 @@
   };
   coliseumImg.src = "assets/coliseum-sign.png";
 
+  // Cheering crowd silhouette tiled along the ground.
+  const groundCrowdImg = new Image();
+  let groundCrowdLoaded = false;
+  groundCrowdImg.src = "assets/ground-crowd.png";
+
   // Background party guests — friends' faces on little dancing bodies.
   const FRIEND_NAMES = [
     "Tomy",
@@ -962,30 +967,18 @@
     ctx.stroke();
   }
 
-  // The ground itself is a packed crowd — full silhouettes (same build as
-  // the dance-floor crowd), no separate boundary line, no gaps between
-  // people, everyone with both arms up like one solid cheering mass.
-  const GROUND_CROWD_TILE_W = 34;
-  const GROUND_CROWD_COLOR = "#3a2f52";
-  const groundCrowdSlots = [];
-  (function initGroundCrowdSlots() {
-    let x = 2;
-    while (x < GROUND_CROWD_TILE_W) {
-      groundCrowdSlots.push({
-        dx: x,
-        scale: 0.72 + Math.random() * 0.3,
-        armsUp: true,
-        phase: Math.random() * 10,
-        speed: 1 + Math.random(),
-        swayAmt: 0.04 + Math.random() * 0.05,
-      });
-      x += 14 + Math.random() * 6;
-    }
-  })();
+  // The ground itself is the real cheering-crowd artwork, tiled edge to
+  // edge and scrolling — no separate boundary line drawn on top.
+  const GROUND_CROWD_H = 92;
+  let groundCrowdW = 0;
+  groundCrowdImg.onload = () => {
+    groundCrowdLoaded = true;
+    groundCrowdW = GROUND_CROWD_H * (groundCrowdImg.naturalWidth / groundCrowdImg.naturalHeight);
+  };
 
   function drawGround(dt) {
     groundOffset -= PIPE_SPEED * dt;
-    if (groundOffset < -GROUND_CROWD_TILE_W) groundOffset += GROUND_CROWD_TILE_W;
+    if (groundOffset < -40) groundOffset += 40;
 
     ctx.fillStyle = "#0d1207";
     ctx.fillRect(0, GROUND_Y, W, H - GROUND_Y);
@@ -994,12 +987,11 @@
   }
 
   function drawGroundCrowd() {
-    for (let baseX = groundOffset - GROUND_CROWD_TILE_W; baseX < W; baseX += GROUND_CROWD_TILE_W) {
-      for (const s of groundCrowdSlots) {
-        const cx = baseX + s.dx;
-        const sway = Math.sin(elapsed * s.speed + s.phase) * s.swayAmt;
-        drawSilhouette(cx, GROUND_Y, s.scale, GROUND_CROWD_COLOR, s.armsUp, sway);
-      }
+    if (!groundCrowdLoaded || groundCrowdW <= 0) return;
+    const y = GROUND_Y - GROUND_CROWD_H;
+    const offset = ((groundOffset % groundCrowdW) + groundCrowdW) % groundCrowdW;
+    for (let x = -offset - groundCrowdW; x < W; x += groundCrowdW) {
+      ctx.drawImage(groundCrowdImg, x, y, groundCrowdW, GROUND_CROWD_H);
     }
   }
 
