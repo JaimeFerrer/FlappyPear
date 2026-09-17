@@ -696,27 +696,28 @@
     ctx.translate(x, boothTopY + bob);
     ctx.rotate(-0.08);
 
-    // arm down on the decks
-    djLimb(-HW * 0.7, -HW * 0.95, -HW * 0.5, HW * 0.32, HW * 0.46);
+    // arm down on the decks — reaches to the table line, not into it
+    djLimb(-HW * 0.5, -HW * 1.05, -HW * 0.42, 0, HW * 0.4);
     ctx.fillStyle = LIME;
     ctx.beginPath();
-    ctx.arc(-HW * 0.5, HW * 0.38, HW * 0.22, 0, Math.PI * 2);
+    ctx.arc(-HW * 0.42, HW * 0.04, HW * 0.2, 0, Math.PI * 2);
     ctx.fill();
 
     // arm thrown up, pumping a little
     const pump = Math.sin(elapsed * 4) * 0.08;
-    djLimb(HW * 0.6, -HW * 1.1, HW * 1.85 + pump * 18, -HW * 2.75 - pump * 12, HW * 0.46);
+    djLimb(HW * 0.48, -HW * 1.2, HW * 1.55 + pump * 16, -HW * 2.8 - pump * 12, HW * 0.4);
 
     // Body as one continuous silhouette (torso + head), not a rect stacked
     // on a circle: stroke both shapes first, then fill both on top so each
     // fill swallows the other shape's stroke where they overlap, leaving
-    // only the true outer outline visible.
-    const headCy = -HW * 2.0;
-    const torsoX = -HW * 0.85;
-    const torsoY = -HW * 1.3;
-    const torsoW = HW * 1.7;
-    const torsoH = HW * 1.45;
-    const torsoR = HW * 0.82;
+    // only the true outer outline visible. Torso is slim and its bottom
+    // edge sits flush with the table instead of sinking into it.
+    const headCy = -HW * 2.05;
+    const torsoW = HW * 1.1;
+    const torsoH = HW * 1.6;
+    const torsoX = -torsoW / 2;
+    const torsoY = -torsoH;
+    const torsoR = HW * 0.52;
 
     ctx.strokeStyle = LIME;
     ctx.lineWidth = 3;
