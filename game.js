@@ -1192,7 +1192,7 @@
   function drawReadyOverlay() {
     drawTitleText();
     ctx.save();
-    ctx.font = "600 18px 'Anton', sans-serif";
+    ctx.font = "600 23px 'Anton', sans-serif";
     ctx.fillStyle = "#fff";
     ctx.textAlign = "center";
     const pulse = 0.6 + 0.4 * Math.sin(elapsed * 4);
