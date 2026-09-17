@@ -468,7 +468,7 @@
     drawDjSilhouette(DJ_CX, BOOTH_Y);
     // Sits right under the score, so only show it once the score does —
     // on the ready screen that spot is taken by the title.
-    if (state !== STATE.READY) drawColiseumSign(DJ_CX, 196);
+    if (state !== STATE.READY) drawColiseumSign(DJ_CX, 222);
   }
 
   function drawDjSilhouette(x, boothTopY) {
