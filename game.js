@@ -466,7 +466,9 @@
     }
 
     drawDjSilhouette(DJ_CX, BOOTH_Y);
-    drawColiseumSign(DJ_CX, BOOTH_Y - 12);
+    // Sits right under the score, so only show it once the score does —
+    // on the ready screen that spot is taken by the title.
+    if (state !== STATE.READY) drawColiseumSign(DJ_CX, 196);
   }
 
   function drawDjSilhouette(x, boothTopY) {
@@ -525,7 +527,7 @@
   // it's lit up by neon/spotlights.
   function drawColiseumSign(cx, bottomY) {
     if (!coliseumLoaded) return;
-    const w = 380;
+    const w = 170;
     const h = w / (coliseumImg.naturalWidth / coliseumImg.naturalHeight);
     const cy = bottomY - h / 2;
 
