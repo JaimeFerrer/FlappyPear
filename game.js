@@ -170,6 +170,7 @@
     "#4a3f6b",
   ];
   const SHOE_COLORS = ["#141414", "#241f1a", "#1c1c24", "#20241f", "#241416"];
+  const SHIRT_ICONS = ["note", "headphones", "disco", "cassette", "bolt", "star", "vinyl", "mic"];
   const SKIN_COLOR = "#e8b48c";
   const SKIN_SHADOW = "#c98f65";
   const OUTLINE = "#161616";
@@ -194,6 +195,7 @@
     pantsColor: PANTS_COLORS[0],
     shoeColor: SHOE_COLORS[0],
     longSleeve: false,
+    icon: null,
   }));
 
   function pickFriend(excludeNames) {
@@ -217,6 +219,7 @@
         slot.pantsColor = PANTS_COLORS[Math.floor(Math.random() * PANTS_COLORS.length)];
         slot.shoeColor = SHOE_COLORS[Math.floor(Math.random() * SHOE_COLORS.length)];
         slot.longSleeve = Math.random() < 0.4;
+        slot.icon = Math.random() < 0.5 ? null : SHIRT_ICONS[Math.floor(Math.random() * SHIRT_ICONS.length)];
         slot.state = "in";
         slot.timer = DANCER_FADE;
       } else if (slot.state === "in") {
@@ -284,6 +287,158 @@
     return { x: x1 + (x2 - x1) * frac, y: y1 + (y2 - y1) * frac };
   }
 
+  // Tiny doodle-style prints for shirts, drawn centered at the origin
+  // within roughly an `s`-wide box, always in a single dark ink color.
+  const SHIRT_ICON_DRAWERS = {
+    note(s) {
+      ctx.fillStyle = OUTLINE;
+      ctx.strokeStyle = OUTLINE;
+      ctx.lineWidth = s * 0.08;
+      ctx.lineCap = "round";
+      ctx.save();
+      ctx.translate(-s * 0.15, s * 0.32);
+      ctx.rotate(-0.3);
+      ctx.beginPath();
+      ctx.ellipse(0, 0, s * 0.16, s * 0.11, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+      ctx.beginPath();
+      ctx.moveTo(s * 0.0, s * 0.28);
+      ctx.lineTo(s * 0.18, -s * 0.4);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(s * 0.18, -s * 0.4);
+      ctx.quadraticCurveTo(s * 0.42, -s * 0.3, s * 0.28, -s * 0.05);
+      ctx.stroke();
+    },
+    headphones(s) {
+      ctx.strokeStyle = OUTLINE;
+      ctx.lineWidth = s * 0.09;
+      ctx.lineCap = "round";
+      ctx.beginPath();
+      ctx.arc(0, 0, s * 0.32, Math.PI * 1.1, Math.PI * 1.9);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.ellipse(-s * 0.32, s * 0.08, s * 0.09, s * 0.14, 0, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.ellipse(s * 0.32, s * 0.08, s * 0.09, s * 0.14, 0, 0, Math.PI * 2);
+      ctx.stroke();
+    },
+    disco(s) {
+      ctx.strokeStyle = OUTLINE;
+      ctx.lineWidth = s * 0.06;
+      ctx.beginPath();
+      ctx.arc(0, 0, s * 0.34, 0, Math.PI * 2);
+      ctx.stroke();
+      for (let i = -1; i <= 1; i++) {
+        ctx.beginPath();
+        ctx.moveTo(-s * 0.34, i * s * 0.17);
+        ctx.lineTo(s * 0.34, i * s * 0.17);
+        ctx.stroke();
+      }
+      ctx.beginPath();
+      ctx.moveTo(0, -s * 0.34);
+      ctx.lineTo(0, s * 0.34);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(0, -s * 0.34);
+      ctx.lineTo(0, -s * 0.5);
+      ctx.stroke();
+    },
+    cassette(s) {
+      ctx.strokeStyle = OUTLINE;
+      ctx.lineWidth = s * 0.06;
+      roundRectPath(-s * 0.38, -s * 0.26, s * 0.76, s * 0.52, s * 0.08);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(-s * 0.16, 0, s * 0.11, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(s * 0.16, 0, s * 0.11, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(-s * 0.3, s * 0.14);
+      ctx.lineTo(s * 0.3, s * 0.14);
+      ctx.stroke();
+    },
+    bolt(s) {
+      ctx.strokeStyle = OUTLINE;
+      ctx.lineWidth = s * 0.06;
+      ctx.lineJoin = "round";
+      ctx.beginPath();
+      ctx.moveTo(s * 0.06, -s * 0.42);
+      ctx.lineTo(-s * 0.2, s * 0.02);
+      ctx.lineTo(s * 0.02, s * 0.02);
+      ctx.lineTo(-s * 0.08, s * 0.42);
+      ctx.lineTo(s * 0.24, -s * 0.08);
+      ctx.lineTo(s * 0.02, -s * 0.08);
+      ctx.closePath();
+      ctx.stroke();
+    },
+    star(s) {
+      ctx.strokeStyle = OUTLINE;
+      ctx.lineWidth = s * 0.06;
+      ctx.lineJoin = "round";
+      const spikes = 5;
+      const outerR = s * 0.36;
+      const innerR = s * 0.15;
+      ctx.beginPath();
+      for (let i = 0; i < spikes * 2; i++) {
+        const r = i % 2 === 0 ? outerR : innerR;
+        const a = (Math.PI / spikes) * i - Math.PI / 2;
+        const x = Math.cos(a) * r;
+        const y = Math.sin(a) * r;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.closePath();
+      ctx.stroke();
+    },
+    vinyl(s) {
+      ctx.strokeStyle = OUTLINE;
+      ctx.lineWidth = s * 0.05;
+      ctx.beginPath();
+      ctx.arc(0, 0, s * 0.34, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(0, 0, s * 0.22, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.fillStyle = OUTLINE;
+      ctx.beginPath();
+      ctx.arc(0, 0, s * 0.06, 0, Math.PI * 2);
+      ctx.fill();
+    },
+    mic(s) {
+      ctx.strokeStyle = OUTLINE;
+      ctx.lineWidth = s * 0.07;
+      ctx.lineCap = "round";
+      roundRectPath(-s * 0.13, -s * 0.4, s * 0.26, s * 0.4, s * 0.13);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(0, -s * 0.02, s * 0.24, 0.2 * Math.PI, 0.8 * Math.PI);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(0, s * 0.22);
+      ctx.lineTo(0, s * 0.4);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(-s * 0.14, s * 0.4);
+      ctx.lineTo(s * 0.14, s * 0.4);
+      ctx.stroke();
+    },
+  };
+
+  function drawShirtIcon(name, cx, cy, size) {
+    const drawer = SHIRT_ICON_DRAWERS[name];
+    if (!drawer) return;
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.globalAlpha *= 0.85;
+    drawer(size);
+    ctx.restore();
+  }
+
   function drawDancer(slot) {
     if (slot.state === "empty" || !slot.friend || !slot.friend.loaded) return;
     let alpha = 1;
@@ -334,6 +489,7 @@
 
     // shirt (torso)
     drawBlock(-bodyW / 2, 0, bodyW, bodyH, bodyW * 0.32, slot.shirtColor);
+    if (slot.icon) drawShirtIcon(slot.icon, 0, bodyH * 0.42, bodyW * 0.62);
 
     // arms (skin), from shoulder to hand
     let leftArmAngle, rightArmAngle;
