@@ -969,16 +969,22 @@
 
   // The ground itself is the real cheering-crowd artwork, tiled edge to
   // edge and scrolling — no separate boundary line drawn on top.
-  const GROUND_CROWD_H = 92;
+  const GROUND_CROWD_H = 62;
   let groundCrowdW = 0;
   groundCrowdImg.onload = () => {
     groundCrowdLoaded = true;
     groundCrowdW = GROUND_CROWD_H * (groundCrowdImg.naturalWidth / groundCrowdImg.naturalHeight);
   };
 
+  // The crowd scrolls slower than the speakers/pipes — its own pace, own
+  // accumulator, not tied to PIPE_SPEED.
+  const GROUND_CROWD_SPEED = 70;
+  let groundCrowdOffset = 0;
+
   function drawGround(dt) {
     groundOffset -= PIPE_SPEED * dt;
     if (groundOffset < -40) groundOffset += 40;
+    groundCrowdOffset -= GROUND_CROWD_SPEED * dt;
 
     ctx.fillStyle = "#0d1207";
     ctx.fillRect(0, GROUND_Y, W, H - GROUND_Y);
@@ -989,9 +995,11 @@
   function drawGroundCrowd() {
     if (!groundCrowdLoaded || groundCrowdW <= 0) return;
     const y = GROUND_Y - GROUND_CROWD_H;
-    const offset = ((groundOffset % groundCrowdW) + groundCrowdW) % groundCrowdW;
-    for (let x = -offset - groundCrowdW; x < W; x += groundCrowdW) {
-      ctx.drawImage(groundCrowdImg, x, y, groundCrowdW, GROUND_CROWD_H);
+    const offset = ((groundCrowdOffset % groundCrowdW) + groundCrowdW) % groundCrowdW;
+    // Round to whole pixels and overlap tiles by 1px so sub-pixel rounding
+    // never leaves a hairline gap between copies.
+    for (let x = Math.round(-offset - groundCrowdW); x < W; x += Math.round(groundCrowdW)) {
+      ctx.drawImage(groundCrowdImg, x, y, Math.round(groundCrowdW) + 1, GROUND_CROWD_H);
     }
   }
 
