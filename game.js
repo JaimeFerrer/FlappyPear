@@ -620,7 +620,9 @@
 
   // Speaker cabinet, tiled to fit any obstacle length — same footprint and
   // colors as the old plain pipe, just drawn as stacked PA speakers.
-  function drawSpeakerCabinet(x, y, w, h) {
+  // `kick` (0-1) is the current beat pulse, used to bump the cone size and
+  // spawn an expanding sound-wave ring so the stack reads as blasting music.
+  function drawSpeakerCabinet(x, y, w, h, kick) {
     ctx.fillStyle = "#0f1a0a";
     ctx.strokeStyle = LIME;
     ctx.lineWidth = 3;
@@ -644,7 +646,15 @@
 
       const cx = x + w / 2;
       const cy = uy + unitH / 2;
-      const rOuter = Math.min(w * 0.42, unitH * 0.38);
+      const rOuter = Math.min(w * 0.42, unitH * 0.38) * (1 + kick * 0.14);
+
+      // expanding sound-wave ring, looping continuously off the beat
+      const ringT = (elapsed * 1.3 + ((uy * 7) % 100) * 0.01) % 1;
+      ctx.beginPath();
+      ctx.arc(cx, cy, rOuter * (1 + ringT * 1.7), 0, Math.PI * 2);
+      ctx.strokeStyle = `rgba(214,255,47,${(0.4 * (1 - ringT)).toFixed(2)})`;
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
 
       // woofer
       ctx.beginPath();
@@ -681,7 +691,7 @@
     }
   }
 
-  function drawSpeakerCap(x, y, w, h) {
+  function drawSpeakerCap(x, y, w, h, kick) {
     ctx.fillStyle = "#0f1a0a";
     ctx.strokeStyle = LIME;
     ctx.lineWidth = 3;
@@ -695,9 +705,21 @@
     for (let i = 0; i < dots; i++) {
       const dx = x + margin + (usable * i) / (dots - 1);
       ctx.beginPath();
-      ctx.arc(dx, y + h / 2, 2, 0, Math.PI * 2);
+      ctx.arc(dx, y + h / 2, 2 + kick * 1.2, 0, Math.PI * 2);
       ctx.fill();
     }
+  }
+
+  // One cabinet + its cap, rattled together on the beat like it's blasting
+  // music at full volume. Purely visual — the collision rects never move.
+  function drawSpeakerStack(cabX, cabY, cabW, cabH, capX, capY, capW, capH, kick, seed) {
+    const shakeX = Math.sin(elapsed * 42 + seed) * 1.6 * kick;
+    const shakeY = Math.cos(elapsed * 35 + seed * 1.3) * 1.1 * kick;
+    ctx.save();
+    ctx.translate(shakeX, shakeY);
+    drawSpeakerCabinet(cabX, cabY, cabW, cabH, kick);
+    drawSpeakerCap(capX, capY, capW, capH, kick);
+    ctx.restore();
   }
 
   function drawPipe(pipe) {
@@ -705,14 +727,13 @@
     const bottomY = pipe.gapY + PIPE_GAP / 2;
     const bottomH = GROUND_Y - bottomY;
     const capH = 22;
+    const kick = Math.pow(Math.abs(Math.sin(elapsed * 6)), 4);
 
     // top speaker stack
-    drawSpeakerCabinet(pipe.x, 0, PIPE_W, topH);
-    drawSpeakerCap(pipe.x - 5, topH - capH, PIPE_W + 10, capH);
+    drawSpeakerStack(pipe.x, 0, PIPE_W, topH, pipe.x - 5, topH - capH, PIPE_W + 10, capH, kick, pipe.gapY);
 
     // bottom speaker stack
-    drawSpeakerCabinet(pipe.x, bottomY, PIPE_W, bottomH);
-    drawSpeakerCap(pipe.x - 5, bottomY, PIPE_W + 10, capH);
+    drawSpeakerStack(pipe.x, bottomY, PIPE_W, bottomH, pipe.x - 5, bottomY, PIPE_W + 10, capH, kick, pipe.gapY + 37);
   }
 
   function drawPear() {
