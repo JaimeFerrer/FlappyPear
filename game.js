@@ -466,7 +466,7 @@
     }
 
     drawDjSilhouette(DJ_CX, BOOTH_Y);
-    drawColiseumSign(DJ_CX + 22, BOOTH_Y - 12);
+    drawColiseumSign(DJ_CX, BOOTH_Y - 12);
   }
 
   function drawDjSilhouette(x, boothTopY) {
@@ -525,7 +525,7 @@
   // it's lit up by neon/spotlights.
   function drawColiseumSign(cx, bottomY) {
     if (!coliseumLoaded) return;
-    const w = 132;
+    const w = 380;
     const h = w / (coliseumImg.naturalWidth / coliseumImg.naturalHeight);
     const cy = bottomY - h / 2;
 
