@@ -984,7 +984,7 @@
   function drawGround(dt) {
     groundOffset -= PIPE_SPEED * dt;
     if (groundOffset < -40) groundOffset += 40;
-    groundCrowdOffset -= GROUND_CROWD_SPEED * dt;
+    groundCrowdOffset += GROUND_CROWD_SPEED * dt;
 
     // Same black as the crowd artwork itself, so the ground below it
     // doesn't show as a different-colored strip under the silhouette.
