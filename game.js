@@ -140,6 +140,7 @@
     "Domingo",
     "NPerez",
     "Bellostas",
+    "Eloy",
   ];
   const friends = FRIEND_NAMES.map((name) => {
     const img = new Image();
