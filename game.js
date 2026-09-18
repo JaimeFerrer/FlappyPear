@@ -1010,6 +1010,13 @@
       ctx.drawImage(groundCrowdImg, x, y, Math.round(groundCrowdW), GROUND_CROWD_H);
     }
     ctx.restore();
+
+    // The artwork's own bottom edge is almost a straight line, so the glow
+    // above bleeds into a stray lime underline there — paint it back over
+    // in the same black as the ground so only the jagged top silhouette
+    // (heads/arms) keeps its outline.
+    ctx.fillStyle = "#000000";
+    ctx.fillRect(0, GROUND_Y - 3, W, H - GROUND_Y + 3);
   }
 
   // Speaker cabinet, tiled to fit any obstacle length — same footprint and
