@@ -136,6 +136,8 @@
     "Canudas",
     "Fer",
     "Boix",
+    "Pinero",
+    "Domingo",
   ];
   const friends = FRIEND_NAMES.map((name) => {
     const img = new Image();
