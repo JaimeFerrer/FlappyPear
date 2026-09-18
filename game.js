@@ -1003,9 +1003,13 @@
     const y = GROUND_Y - GROUND_CROWD_H;
     const stride = Math.round(groundCrowdW) - GROUND_CROWD_OVERLAP;
     const offset = ((groundCrowdOffset % stride) + stride) % stride;
+    ctx.save();
+    ctx.shadowColor = "rgba(214,255,47,0.95)";
+    ctx.shadowBlur = 4;
     for (let x = Math.round(-offset - stride); x < W; x += stride) {
       ctx.drawImage(groundCrowdImg, x, y, Math.round(groundCrowdW), GROUND_CROWD_H);
     }
+    ctx.restore();
   }
 
   // Speaker cabinet, tiled to fit any obstacle length — same footprint and
